@@ -1,34 +1,15 @@
-Вот код, который реализует описанную функциональность бота Telegram. Обратите внимание на исправления и добавленные комментарии:
-
-python
-
-Копировать
-
 import os
-
 import logging
-
 import random
-
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-
 from telegram.ext import (
-
     ApplicationBuilder,
-
     ContextTypes,
-
     CommandHandler,
-
     CallbackQueryHandler,
-
     MessageHandler,
-
     filters,
-
 )
-
-# Настройка логирования для отладки и мониторинга
 
 logging.basicConfig(
 

@@ -1,108 +1,77 @@
 import os
+import logging
 import random
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
-    ApplicationBuilder, CommandHandler, CallbackQueryHandler,
-    MessageHandler, ContextTypes, filters
+    ApplicationBuilder,
+    ContextTypes,
+    CommandHandler,
+    CallbackQueryHandler,
 )
 
-# Хранилище пользовательских вариантов
-user_choices = {}
+# Логирование
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
-# Опции по умолчанию для простого броска
-default_options = [
-    "Почитать",
-    "Прокрастинировать дальше",
-    "Забронировать поездку",
-    "Прогуляться",
-    "Позвонить близкому",
-    "Выпить чай"
-]
+# Стартовое сообщение с кнопкой запуска
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    keyboard = [[InlineKeyboardButton("🚀 Запустить бота", callback_data="run_bot")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await update.message.reply_text("Привет! Нажми кнопку, чтобы сделать свою жизнь чуточку легче✨", reply_markup=reply_markup)
 
 # Приветственные сообщения
 welcome_messages = [
-    "Каждый день мы делаем выбор, опираясь на привычки и старый опыт.\n"
-    "Так мозг экономит энергию — и мы снова идём по протоптанной дорожке.\n\n"
-    "Хочешь выйти из петли?\nДобавь немного случайности. Немного магии. 🎲\n\n"
-    "Назначь опции или просто брось кубик — освободи время для важных решений.",
-
-    "Мы часто выбираем не то, что хотим, а то, что уже делали.\n"
-    "Мозг любит повторять. Привычки сильнее желаний.\n\n"
-    "Этот бот создан, чтобы сломать петлю.\nБрось кубик — пусть Вселенная подскажет. ✨\n\n"
-    "Назначь опции или просто брось кубик — освободи время для важных решений.",
-
-    "Мы ходим по кругу: выбор → привычка → автомат.\n\n"
-    "А что, если добавить элемент неожиданности? 🎲\n"
-    "Вдруг сегодня всё пойдёт по-другому.\n\n"
-    "Назначь опции или просто брось кубик — освободи время для важных решений.",
-
-    "Наши выборы — это след прошлого.\n"
-    "Хочешь шагнуть в новое — доверься случаю.\n\n"
-    "Кубик знает больше, чем кажется 😉\n\n"
-    "Назначь опции или просто брось кубик — освободи время для важных решений."
+    "Мы часто делаем выбор, основываясь на прошлом опыте и шагаем по одними и тем же дорожкам.\nДобавь в день немного магии 😉\n\nНазначь опции или просто брось кубик — освободи время для важных решений.",
+    "Сколько времени мы тратим, чтобы решить простое: звонить или не звонить, чай или прогулка?\nДоверься удаче, пусть кубик подскажет.\n\nНазначь опции или просто брось кубик — освободи время для важных решений.",
+    "Если всё время выбирать одно и то же — жизнь становится предсказуемой.\nПопробуй довериться случаю 🎲\n\nНазначь опции или просто брось кубик — освободи время для важных решений.",
+    "Иногда лучшая интуиция — это кубик. Правда-правда!\n\nНазначь опции или просто брось кубик — освободи время для важных решений."
 ]
 
-# Кнопки
-def main_menu():
-    keyboard = [
-        [InlineKeyboardButton("  🎲 БРОСИТЬ КУБИК  ", callback_data="simple_roll")],
-        [InlineKeyboardButton("  🗳 НАЗНАЧИТЬ ВЫБОРЫ  ", callback_data="start_choices")]
-    ]
-    return InlineKeyboardMarkup(keyboard)
-
-def roll_button():
-    return InlineKeyboardMarkup([
-        [InlineKeyboardButton("  🎲 БРОСИТЬ КУБИК  ", callback_data="choice_roll")]
-    ])
-
-# /start
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    welcome = random.choice(welcome_messages)
-    await update.message.reply_text(welcome)
-    await update.message.reply_text("Выбери, что сделать:", reply_markup=main_menu())
-
-# Обработка кнопок
-async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+# Кнопка "Запустить бота"
+async def run_bot(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     await query.answer()
-    user_id = query.from_user.id
+    greeting = random.choice(welcome_messages)
+    keyboard = [
+        [InlineKeyboardButton("🎲 Бросить кубик", callback_data="roll")],
+        [InlineKeyboardButton("📦 Назначить выбор", callback_data="set_choices")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await query.message.reply_text(greeting, reply_markup=reply_markup)
 
-    if query.data == "simple_roll":
-        number = random.randint(1, 6)
-        choice = default_options[number - 1]
-        await query.message.reply_text(f"🎲 Выпало число: {number}\n👉 {choice}", reply_markup=main_menu())
+# Бросить кубик
+async def roll_dice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    await query.answer()
+    result = random.randint(1, len(choices))
+    response = f"🎲 Выпало число: {result}\n👉 {choices[result - 1]}"
+    await query.edit_message_text(text=response)
 
-    elif query.data == "start_choices":
-        await query.message.reply_text(
-            "Напиши 6 новых вариантов, каждый с новой строки. Например:\n\nпочитать\nпрогуляться\nвыпить чай"
-        )
-
-    elif query.data == "choice_roll":
-        if user_id not in user_choices or len(user_choices[user_id]) != 6:
-            await query.message.reply_text("Ты ещё не прислал 6 вариантов. Напиши их сначала.")
-            return
-        number = random.randint(1, 6)
-        choice = user_choices[user_id][number - 1]
-        await query.message.reply_text(f"🎲 Выпало число: {number}\n👉 {choice}", reply_markup=main_menu())
-
-# Сообщения с 6 вариантами
-async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.message.from_user.id
-    text = update.message.text.strip()
-
-    lines = [line.strip() for line in text.split("\n") if line.strip()]
-    if len(lines) != 6:
-        await update.message.reply_text("Пожалуйста, пришли ровно 6 строк.")
-        return
-
-    user_choices[user_id] = lines
-    await update.message.reply_text("Принято! Теперь нажми кнопку ниже, чтобы бросить кубик:", reply_markup=roll_button())
+# Назначить варианты
+async def set_choices(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    await query.answer()
+    global choices
+    choices = [
+        "Почитать",
+        "Прокрастинировать дальше",
+        "Забронировать поездку",
+        "Прогуляться",
+        "Позвонить близкому",
+        "Выпить чай"
+    ]
+    await query.edit_message_text("Выбор сохранён! Теперь нажми 🎲 Бросить кубик")
 
 # Запуск
-app = ApplicationBuilder().token(os.getenv("BOT_TOKEN")).build()
+if __name__ == '__main__':
+    BOT_TOKEN = os.getenv("BOT_TOKEN")
+    app = ApplicationBuilder().token(BOT_TOKEN).build()
 
-app.add_handler(CommandHandler("start", start))
-app.add_handler(CallbackQueryHandler(button_handler))
-app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, message_handler))
+    choices = []
 
-app.run_polling()
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CallbackQueryHandler(run_bot, pattern="^run_bot$"))
+    app.add_handler(CallbackQueryHandler(roll_dice, pattern="^roll$"))
+    app.add_handler(CallbackQueryHandler(set_choices, pattern="^set_choices$"))
+
+    app.run_polling()
+

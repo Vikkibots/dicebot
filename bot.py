@@ -90,20 +90,18 @@ async def handle_custom_choices(update: Update, context: ContextTypes.DEFAULT_TY
     choices = [line.strip() for line in text.split('\n') if line.strip()]
     await update.message.reply_text("Выбор сохранён! Теперь нажми 🎲 Бросить кубик")
 
-if __name__ == "__main__":
-    import asyncio
+from telegram.ext import ApplicationBuilder
 
-    async def main():
-        BOT_TOKEN = os.getenv("BOT_TOKEN")
-        app = ApplicationBuilder().token(BOT_TOKEN).build()
+BOT_TOKEN = os.getenv("BOT_TOKEN")
 
-        app.add_handler(CommandHandler("start", start))
-        app.add_handler(CallbackQueryHandler(run_bot_button, pattern="^run_bot$"))
-        app.add_handler(CallbackQueryHandler(roll_dice, pattern="^roll$"))
-        app.add_handler(CallbackQueryHandler(set_choices, pattern="^set_choices$"))
-        app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_custom_choices))
+app = ApplicationBuilder().token(BOT_TOKEN).build()
 
-        await app.run_polling()
+app.add_handler(CommandHandler("start", start))
+app.add_handler(CallbackQueryHandler(run_bot_button, pattern="^run_bot$"))
+app.add_handler(CallbackQueryHandler(roll_dice, pattern="^roll$"))
+app.add_handler(CallbackQueryHandler(set_choices, pattern="^set_choices$"))
+app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_custom_choices))
 
-    asyncio.run(main())
+app.run_polling()
+
 

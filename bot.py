@@ -12,29 +12,23 @@ from telegram.ext import (
 # Логирование
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
-# Стартовое сообщение с кнопкой запуска
-async def roll_dice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    query = update.callback_query
-    await query.answer()
-
-    result = random.randint(1, 6)
-
-    if choices:
-        response = f"🎲 Выпало число: {result}\n👉 {choices[result - 1]}"
-    else:
-        response = f"🎲 Выпало число: {result}"
-
-    await query.edit_message_text(text=response)
-
 # Приветственные сообщения
 welcome_messages = [
-    "Мы часто делаем выбор, основываясь на прошлом опыте и шагаем по одними и тем же дорожкам.\nДобавь в день немного магии 😉\n\nНазначь опции или просто брось кубик — освободи время для важных решений.",
+    "Мы часто делаем выбор, основываясь на прошлом опыте и шагаем по одним и тем же дорожкам.\nДобавь в день немного магии 😉\n\nНазначь опции или просто брось кубик — освободи время для важных решений.",
     "Сколько времени мы тратим, чтобы решить простое: звонить или не звонить, чай или прогулка?\nДоверься удаче, пусть кубик подскажет.\n\nНазначь опции или просто брось кубик — освободи время для важных решений.",
     "Если всё время выбирать одно и то же — жизнь становится предсказуемой.\nПопробуй довериться случаю 🎲\n\nНазначь опции или просто брось кубик — освободи время для важных решений.",
     "Иногда лучшая интуиция — это кубик. Правда-правда!\n\nНазначь опции или просто брось кубик — освободи время для важных решений."
 ]
 
-# Кнопка "Запустить бота"
+choices = []
+
+# Команда /start
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    keyboard = [[InlineKeyboardButton("🚀 Запустить бота", callback_data="run_bot")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await update.message.reply_text("Привет! Нажми кнопку, чтобы сделать свою жизнь чуточку легче ✨", reply_markup=reply_markup)
+
+# Обработка кнопки запуска
 async def run_bot(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     await query.answer()
@@ -46,15 +40,20 @@ async def run_bot(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     reply_markup = InlineKeyboardMarkup(keyboard)
     await query.message.reply_text(greeting, reply_markup=reply_markup)
 
-# Бросить кубик
+# Обработка броска кубика
 async def roll_dice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     await query.answer()
-    result = random.randint(1, len(choices))
-    response = f"🎲 Выпало число: {result}\n👉 {choices[result - 1]}"
+
+    result = random.randint(1, 6)
+    if choices:
+        response = f"🎲 Выпало число: {result}\n👉 {choices[result - 1]}"
+    else:
+        response = f"🎲 Выпало число: {result}"
+
     await query.edit_message_text(text=response)
 
-# Назначить варианты
+# Обработка назначения опций
 async def set_choices(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     await query.answer()
@@ -69,12 +68,10 @@ async def set_choices(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     ]
     await query.edit_message_text("Выбор сохранён! Теперь нажми 🎲 Бросить кубик")
 
-# Запуск
+# Запуск приложения
 if __name__ == '__main__':
     BOT_TOKEN = os.getenv("BOT_TOKEN")
     app = ApplicationBuilder().token(BOT_TOKEN).build()
-
-    choices = []
 
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CallbackQueryHandler(run_bot, pattern="^run_bot$"))

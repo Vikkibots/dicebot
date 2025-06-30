@@ -13,10 +13,18 @@ from telegram.ext import (
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 # Стартовое сообщение с кнопкой запуска
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    keyboard = [[InlineKeyboardButton("🚀 Запустить бота", callback_data="run_bot")]]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.message.reply_text("Привет! Нажми кнопку, чтобы сделать свою жизнь чуточку легче✨", reply_markup=reply_markup)
+async def roll_dice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    await query.answer()
+
+    result = random.randint(1, 6)
+
+    if choices:
+        response = f"🎲 Выпало число: {result}\n👉 {choices[result - 1]}"
+    else:
+        response = f"🎲 Выпало число: {result}"
+
+    await query.edit_message_text(text=response)
 
 # Приветственные сообщения
 welcome_messages = [

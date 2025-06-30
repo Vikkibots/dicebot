@@ -1,3 +1,4 @@
+import os
 import random
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
@@ -98,7 +99,7 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Принято! Теперь нажми кнопку ниже, чтобы бросить кубик:", reply_markup=roll_button())
 
 # Запуск
-app = ApplicationBuilder().token("7958944255:AAE9n_DrxHDuiOkvc1K_hlrkk122NpZ5L3Y").build()
+app = ApplicationBuilder().token(os.getenv("BOT_TOKEN")).build()
 
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CallbackQueryHandler(button_handler))

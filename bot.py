@@ -1,13 +1,18 @@
 import os
 import logging
 import random
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import (
-    ApplicationBuilder,
-    ContextTypes,
-    CommandHandler,
-    CallbackQueryHandler,
-)
+from telegram.ext import ApplicationBuilder
+
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+
+application = ApplicationBuilder().token(BOT_TOKEN).build()
+
+application.add_handler(CommandHandler("start", start))
+application.add_handler(CallbackQueryHandler(run_bot, pattern="^run_bot$"))
+application.add_handler(CallbackQueryHandler(roll_dice, pattern="^roll$"))
+application.add_handler(CallbackQueryHandler(set_choices, pattern="^set_choices$"))
+
+application.run_polling()
 
 # Логирование
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)

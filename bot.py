@@ -41,13 +41,14 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         "Привет! Нажми кнопку, чтобы сделать свою жизнь чуточку легче✨",
         reply_markup=reply_markup
     )
-    greeting = random.choice(welcome_messages)
-    await update.message.reply_text(greeting)
 
 # Кнопка "Запустить бота"
 async def run_bot_button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     await query.answer()
+    greeting = random.choice(welcome_messages)
+    await query.message.reply_text(greeting)
+
     keyboard = [
         [InlineKeyboardButton("🎲 Бросить кубик", callback_data="roll")],
         [InlineKeyboardButton("📆 Назначить выбор", callback_data="set_choices")]
@@ -102,10 +103,7 @@ if __name__ == "__main__":
         app.add_handler(CallbackQueryHandler(set_choices, pattern="^set_choices$"))
         app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_custom_choices))
 
-        await app.initialize()
-        await app.start()
-        await app.updater.start_polling()
-        await app.updater.idle()
+        await app.run_polling()
 
     asyncio.run(main())
 

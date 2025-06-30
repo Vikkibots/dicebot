@@ -68,27 +68,23 @@ async def roll_dice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         response = f"🎲 Выпало число: {result}\n👉 {choices[result - 1]}"
         await query.edit_message_text(text=response)
 
-# Назначить варианты (по умолчанию)
+# Назначить варианты
 async def set_choices(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     await query.answer()
-    global choices
-    choices = [
-        "Почитать",
-        "Прокрастинировать дальше",
-        "Забронировать поездку",
-        "Прогуляться",
-        "Позвонить близкому",
-        "Выпить чай"
-    ]
-    await query.edit_message_text("Выбор сохранён! Теперь нажми 🎲 Бросить кубик")
-
+    await query.edit_message_text(
+        "Напиши 6 вариантов, каждый с новой строки. Например: Смотреть сериал; Читать книгу; Позвонить близкому; Выполнить асаны; Выпить кофе; Пойти на массаж."
+    )
 # Обработка пользовательских опций (в виде текста)
 async def handle_custom_choices(update: Update, context: ContextTypes.DEFAULT_TYPE):
     global choices
     text = update.message.text
     choices = [line.strip() for line in text.split('\n') if line.strip()]
-    await update.message.reply_text("Выбор сохранён! Теперь нажми 🎲 Бросить кубик")
+    
+    keyboard = [[InlineKeyboardButton("🎲 Бросить кубик", callback_data="roll")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await update.message.reply_text("Отлично! Теперь воля случая 🎲", reply_markup=reply_markup)
 
 from telegram.ext import ApplicationBuilder
 
